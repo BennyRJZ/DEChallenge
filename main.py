@@ -2,27 +2,34 @@
 import pandas as pd
 import os
 
-
 """
 EXTRACTING 
 """
-# Reading CSV 
 
-filepath = input("Ingresa la ruta del CSV: \n")
-while not os.path.isfile(filepath):
-    print("Error: Ruta no valida, intenta de nuevo.")
-    filepath = input("Ingresa la ruta del CSV: \n")
-# After analyzing the csv, we can see that the delimiter in this db it's a ';' instead a comma
-# So, in order to read this csv, first we need to spicify the delimiter
+# # Reading CSV 
+# filepath = input("Ingresa la ruta del CSV: \n")
+# while not os.path.isfile(filepath):
+#     print("Error: Ruta no valida, intenta de nuevo.")
+#     filepath = input("Ingresa la ruta del CSV: \n")
+# # After analyzing the csv, we can see that the delimiter in this db it's a ';' instead a comma
+# # So, in order to read this csv, first we need to spicify the delimiter
+# mainDF =  pd.read_csv(filepath, sep=';')
+# try:
+#     mainDF =  pd.read_csv(filepath, sep=';')
+#     print("\nLectura del CSV Exitosa\n")
+# except BaseException as exception:
+#     print(f"Ha ocurrido un error: {exception}")
+
+
+filepath = '/Users/benny/Downloads/clientes.csv'
 mainDF =  pd.read_csv(filepath, sep=';')
-try:
-    mainDF =  pd.read_csv(filepath, sep=';')
-    print("\nLectura del CSV Exitosa\n")
-except BaseException as exception:
-    print(f"Ha ocurrido un error: {exception}")
+
+
+
 """
 TRANSFORMING 
 """
+
 #Functions
 def ageGroup(x):
       if x>60:
@@ -42,12 +49,12 @@ def ageGroup(x):
 # print(mainDF.dtypes)
 
 #Changing DateType
-mainDF['fecha_nacimiento'] = pd.to_datetime(mainDF['fecha_nacimiento'])
-mainDF['fecha_vencimiento'] = pd.to_datetime(mainDF['fecha_vencimiento'])
+mainDF['fecha_nacimiento'] = pd.to_datetime(mainDF['fecha_nacimiento'], utc=False)
+mainDF['fecha_vencimiento'] = pd.to_datetime(mainDF['fecha_vencimiento'], utc=False)
 # print(mainDF)
 # print(mainDF.dtypes)
 
-#Dataframe: Clients
+#Dataframe: CLIENTS
 clients = mainDF[['fiscal_id','first_name','last_name','gender']].astype('string') # I pass this columns as we have in the original df
 
 today = pd.to_datetime("today") #setting the time using pandas
@@ -76,8 +83,18 @@ emails['priority'] = mainDF['priority'].astype('Int64')
 #Dataframe: PHONES
 phones = mainDF[['fiscal_id','phone','status','priority']].astype('string')
 phones['priority'] = mainDF['priority'].astype('Int64')
-print(emails.loc[[588]])
-print(emails.dtypes)
+# print(emails.loc[[588]])
+# print(emails.dtypes)
+
+if not os.path.exists('output'): #Create the folder "output if it doesnt exists"
+    os.makedirs('output')
+
+path = 'output'
+clients.to_excel(path+'/'+'clientes.xlsx',index=False)
+emails.to_excel(path+'/'+'emails.xlsx',index=False)
+phones.to_excel(path+'/'+'phones.xlsx',index=False)
+
+
 
 """
 LOADING
