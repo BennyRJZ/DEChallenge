@@ -17,7 +17,7 @@ while not os.path.isfile(filepath):
 mainDF =  pd.read_csv(filepath, sep=';')
 try:
     mainDF =  pd.read_csv(filepath, sep=';')
-    print("\nLectura del CSV Exitosa\n")
+    print("\t **** Lectura del CSV Exitosa\n")
 except BaseException as exception:
     print(f"Ha ocurrido un error: {exception}")
 
@@ -25,13 +25,12 @@ except BaseException as exception:
 # filepath = '/Users/benny/Downloads/clientes.csv'
 # mainDF =  pd.read_csv(filepath, sep=';')
 
-print(f"\nExtraccion Realizada\n")
+print(f"\t **** Extraccion del CSV Realizada\n")
 
 """
 TRANSFORM 
 """
-
-#Functions
+#Function to get the age group
 def ageGroup(x):
       if x>60:
             return 6
@@ -49,10 +48,8 @@ def ageGroup(x):
 #Changing DateType
 mainDF['fecha_nacimiento'] = pd.to_datetime(mainDF['fecha_nacimiento'], utc=False)
 mainDF['fecha_vencimiento'] = pd.to_datetime(mainDF['fecha_vencimiento'], utc=False)
-
-
-
-#Dataframe: CUSTOMERS
+mainDF['telefono'] = mainDF['telefono'].astype('Int64')
+### Dataframe: CUSTOMERS
 customers = mainDF[['fiscal_id','first_name','last_name','gender']].astype('string') # I pass this columns as we have in the original df
 
 today = pd.to_datetime("today") #setting the time using pandas
@@ -102,7 +99,7 @@ phones['status'] = phones['status'].str.upper()
 # print(phones.head)
 # print(phones.dtypes)
 
-print(f"\n Dataframes Generados\n")
+print(f"\t **** Dataframes Generados\n")
 
 """
 LOAD
@@ -117,7 +114,7 @@ customers.to_excel(path+'clientes.xlsx',index=False)
 emails.to_excel(path+'emails.xlsx',index=False)
 phones.to_excel(path+'phones.xlsx',index=False)
 
-print(f"\n Exportacion a XLSX Realizada\n")
+print(f"\t **** Exportacion a XLSX Realizada\n")
 
 ## Database
 conn = sqlite3.connect("database.db3")  #Connection /creation of the database.
@@ -157,7 +154,7 @@ c.execute(
     """
       CREATE TABLE IF NOT EXISTS phones (
         fiscal_id TEXT,
-        phone TEXT,
+        phone INTEGER,
         status TEXT,
         priority INTEGER
         );
@@ -168,4 +165,7 @@ customers.to_sql('customers', conn, if_exists='append', index=False)
 emails.to_sql('emails', conn, if_exists='append', index=False)
 phones.to_sql('phones', conn, if_exists='append', index=False)
 
-print(f"\n Exportacion a Base de Datos Completa \n")
+print(f"\t **** Exportacion a Base de Datos Completa\n")
+
+
+print(mainDF['phone'])
