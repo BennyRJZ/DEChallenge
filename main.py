@@ -1,16 +1,25 @@
 # General Imports
 import pandas as pd
+import os
 
 
 """
 EXTRACTING 
 """
 # Reading CSV 
+
+filepath = input("Ingresa la ruta del CSV: \n")
+while not os.path.isfile(filepath):
+    print("Error: Ruta no valida, intenta de nuevo.")
+    filepath = input("Ingresa la ruta del CSV: \n")
 # After analyzing the csv, we can see that the delimiter in this db it's a ';' instead a comma
 # So, in order to read this csv, first we need to spicify the delimiter
-route = '/Users/benny/Downloads/clientes.csv'
-mainDF =  pd.read_csv(route, sep=';')
-
+mainDF =  pd.read_csv(filepath, sep=';')
+try:
+    mainDF =  pd.read_csv(filepath, sep=';')
+    print("\nLectura del CSV Exitosa\n")
+except BaseException as exception:
+    print(f"Ha ocurrido un error: {exception}")
 """
 TRANSFORMING 
 """
