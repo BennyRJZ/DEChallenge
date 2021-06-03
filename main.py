@@ -1,33 +1,34 @@
 # General Imports
 import pandas as pd
 import os
+import sqlite3
 
 """
-EXTRACTING 
+EXTRACT
 """
 
-# # Reading CSV 
-# filepath = input("Ingresa la ruta del CSV: \n")
-# while not os.path.isfile(filepath):
-#     print("Error: Ruta no valida, intenta de nuevo.")
-#     filepath = input("Ingresa la ruta del CSV: \n")
-# # After analyzing the csv, we can see that the delimiter in this db it's a ';' instead a comma
-# # So, in order to read this csv, first we need to spicify the delimiter
-# mainDF =  pd.read_csv(filepath, sep=';')
-# try:
-#     mainDF =  pd.read_csv(filepath, sep=';')
-#     print("\nLectura del CSV Exitosa\n")
-# except BaseException as exception:
-#     print(f"Ha ocurrido un error: {exception}")
-
-
-filepath = '/Users/benny/Downloads/clientes.csv'
+# Reading CSV 
+filepath = input("Ingresa la ruta del CSV: \n")
+while not os.path.isfile(filepath):
+    print("Error: Ruta no valida, intenta de nuevo.")
+    filepath = input("Ingresa la ruta del CSV: \n")
+# After analyzing the csv, we can see that the delimiter in this db it's a ';' instead a comma
+# So, in order to read this csv, first we need to spicify the delimiter
 mainDF =  pd.read_csv(filepath, sep=';')
+try:
+    mainDF =  pd.read_csv(filepath, sep=';')
+    print("\nLectura del CSV Exitosa\n")
+except BaseException as exception:
+    print(f"Ha ocurrido un error: {exception}")
 
 
+# filepath = '/Users/benny/Downloads/clientes.csv'
+# mainDF =  pd.read_csv(filepath, sep=';')
+
+print(f"\nExtraccion Realizada\n")
 
 """
-TRANSFORMING 
+TRANSFORM 
 """
 
 #Functions
@@ -44,30 +45,34 @@ def ageGroup(x):
             return 2
       else:
             return 1
-#Analyzing the data.
-# print(mainDF)
-# print(mainDF.dtypes)
 
 #Changing DateType
 mainDF['fecha_nacimiento'] = pd.to_datetime(mainDF['fecha_nacimiento'], utc=False)
 mainDF['fecha_vencimiento'] = pd.to_datetime(mainDF['fecha_vencimiento'], utc=False)
-# print(mainDF)
-# print(mainDF.dtypes)
 
-#Dataframe: CLIENTS
-clients = mainDF[['fiscal_id','first_name','last_name','gender']].astype('string') # I pass this columns as we have in the original df
+
+
+#Dataframe: CUSTOMERS
+customers = mainDF[['fiscal_id','first_name','last_name','gender']].astype('string') # I pass this columns as we have in the original df
 
 today = pd.to_datetime("today") #setting the time using pandas
 
-clients['birthday']= mainDF['fecha_nacimiento']
-clients['age']= (today - mainDF['fecha_nacimiento']).astype('<m8[Y]').astype('int') 
-clients['age_group']= clients['age'].apply(lambda x: ageGroup(x))
-clients['due_date']= mainDF['fecha_vencimiento']
-clients['delinquency']= (today - mainDF['fecha_vencimiento']).astype('<m8[D]').astype('int')
-clients['due_balance']= mainDF['deuda'].astype('int')
-clients['address']= mainDF['direccion'].astype('string')
-# print(clients)
-# print(clients.dtypes)
+customers['birth_date']= mainDF['fecha_nacimiento']
+customers['age']= (today - mainDF['fecha_nacimiento']).astype('<m8[Y]').astype('int') 
+customers['age_group']= customers['age'].apply(lambda x: ageGroup(x))
+customers['due_date']= mainDF['fecha_vencimiento']
+customers['delinquency']= (today - mainDF['fecha_vencimiento']).astype('<m8[D]').astype('int')
+customers['due_balance']= mainDF['deuda'].astype('int')
+customers['address']= mainDF['direccion'].astype('string')
+
+#To Upper
+customers['fiscal_id'] = customers['fiscal_id'].str.upper()
+customers['first_name'] = customers['first_name'].str.upper()
+customers['last_name'] = customers['last_name'].str.upper()
+customers['gender'] = customers['gender'].str.upper()
+customers['address'] = customers['address'].str.upper()
+# print(customers.head)
+# print(customers.dtypes)
 
 #Changing the necessary column names and  for EMAILS and PHONES dfs
 mainDF=mainDF.rename(columns = {'correo':'email',
@@ -77,26 +82,90 @@ mainDF=mainDF.rename(columns = {'correo':'email',
 #Dataframe: EMAILS
 emails = mainDF[['fiscal_id','email','status']].astype('string')
 emails['priority'] = mainDF['priority'].astype('Int64')
-# print(emails)
+
+#To Upper
+emails['fiscal_id'] = emails['fiscal_id'].str.upper()
+emails['email'] = emails['email'].str.upper()
+emails['status'] = emails['status'].str.upper()
+
+# print(emails.head)
 # print(emails.dtypes)
 
 #Dataframe: PHONES
 phones = mainDF[['fiscal_id','phone','status','priority']].astype('string')
 phones['priority'] = mainDF['priority'].astype('Int64')
-# print(emails.loc[[588]])
-# print(emails.dtypes)
 
+phones['fiscal_id'] = phones['fiscal_id'].str.upper()
+phones['phone'] = phones['phone'].str.upper()
+phones['status'] = phones['status'].str.upper()
+
+# print(phones.head)
+# print(phones.dtypes)
+
+print(f"\n Dataframes Generados\n")
+
+"""
+LOAD
+"""
+
+## XLSX
 if not os.path.exists('output'): #Create the folder "output if it doesnt exists"
     os.makedirs('output')
 
-path = 'output'
-clients.to_excel(path+'/'+'clientes.xlsx',index=False)
-emails.to_excel(path+'/'+'emails.xlsx',index=False)
-phones.to_excel(path+'/'+'phones.xlsx',index=False)
+path = 'output/'
+customers.to_excel(path+'clientes.xlsx',index=False)
+emails.to_excel(path+'emails.xlsx',index=False)
+phones.to_excel(path+'phones.xlsx',index=False)
 
+print(f"\n Exportacion a XLSX Realizada\n")
 
+## Database
+conn = sqlite3.connect("database.db3")  #Connection /creation of the database.
+c = conn.cursor() #Cursor Object 
 
-"""
-LOADING
-"""
+##Table: Customers
+c.execute(
+    """
+    CREATE TABLE IF NOT EXISTS customers (
+        fiscal_id TEXT,
+        first_name TEXT,
+        last_name TEXT,
+        gender TEXT,
+        birth_date TEXT,
+        age INTEGER,
+        age_group INTEGER,
+        due_date TEXT,
+        delinquency INTEGER,
+        due_balance INTEGER,
+        address TEXT
+        );
+     """
+)
+##Table: MAILS
+c.execute(
+    """     
+      CREATE TABLE IF NOT EXISTS emails (
+        fiscal_id TEXT,
+        email TEXT,
+        status TEXT,
+        priority INTEGER
+        );
+     """
+)
+#Table: PHONES
+c.execute(
+    """
+      CREATE TABLE IF NOT EXISTS phones (
+        fiscal_id TEXT,
+        phone TEXT,
+        status TEXT,
+        priority INTEGER
+        );
+     """
+)
 
+customers.to_sql('customers', conn, if_exists='append', index=False)
+emails.to_sql('emails', conn, if_exists='append', index=False)
+phones.to_sql('phones', conn, if_exists='append', index=False)
+
+print(f"\n Exportacion a Base de Datos Completa \n")
