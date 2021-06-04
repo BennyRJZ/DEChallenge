@@ -4,7 +4,7 @@ import os
 import sqlite3
 
 """
-EXTRACT
+&&&& EXTRACT
 """
 
 # Reading CSV 
@@ -21,15 +21,14 @@ try:
 except BaseException as exception:
     print(f"Ha ocurrido un error: {exception}")
 
-
-# filepath = '/Users/benny/Downloads/clientes.csv'
-# mainDF =  pd.read_csv(filepath, sep=';')
-
 print(f"\t **** Extraccion del CSV Realizada\n")
 
+
 """
-TRANSFORM 
+&&&& TRANSFORM 
 """
+
+
 #Function to get the age group
 def ageGroup(x):
       if x>60:
@@ -68,14 +67,14 @@ customers['first_name'] = customers['first_name'].str.upper()
 customers['last_name'] = customers['last_name'].str.upper()
 customers['gender'] = customers['gender'].str.upper()
 customers['address'] = customers['address'].str.upper()
-# print(customers.head)
-# print(customers.dtypes)
 
 #Changing the necessary column names and  for EMAILS and PHONES dfs
 mainDF=mainDF.rename(columns = {'correo':'email',
                                 'estatus_contacto':'status',
                                 'telefono':'phone',
                                 'prioridad':'priority'})
+
+
 #Dataframe: EMAILS
 emails = mainDF[['fiscal_id','email','status']].astype('string')
 emails['priority'] = mainDF['priority'].astype('Int64')
@@ -85,24 +84,19 @@ emails['fiscal_id'] = emails['fiscal_id'].str.upper()
 emails['email'] = emails['email'].str.upper()
 emails['status'] = emails['status'].str.upper()
 
-# print(emails.head)
-# print(emails.dtypes)
-
 #Dataframe: PHONES
 phones = mainDF[['fiscal_id','phone','status','priority']].astype('string')
 phones['priority'] = mainDF['priority'].astype('Int64')
 
+#To Upper
 phones['fiscal_id'] = phones['fiscal_id'].str.upper()
 phones['phone'] = phones['phone'].str.upper()
 phones['status'] = phones['status'].str.upper()
 
-# print(phones.head)
-# print(phones.dtypes)
-
 print(f"\t **** Dataframes Generados\n")
 
 """
-LOAD
+&&&& LOAD
 """
 
 ## XLSX
@@ -161,11 +155,9 @@ c.execute(
      """
 )
 
+# Filling the tables
 customers.to_sql('customers', conn, if_exists='append', index=False)
 emails.to_sql('emails', conn, if_exists='append', index=False)
 phones.to_sql('phones', conn, if_exists='append', index=False)
 
 print(f"\t **** Exportacion a Base de Datos Completa\n")
-
-
-print(mainDF['phone'])
